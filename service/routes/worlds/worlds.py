@@ -49,9 +49,10 @@ parser = api.parser()
 #products_post.add_argument('product_type', type=str, required=True, help='product type', location='json')
 
 
-@api.route("/<string:token>")
+@api.route("/info/<string:token>")
 class WorldClass(Resource):
     def get(self, token):
+        print(World.query.all())
         return {"status": f"It's ok. Token: {token}"}
 
     @api.expect(world_command)
@@ -61,7 +62,7 @@ class WorldClass(Resource):
         return {"name": api.payload["name"], "state": "zupa"}
 
 
-@api.route("/<string:token>")
+@api.route("/move/<string:token>")
 class MoveClass(Resource):
     def get(self, token):
         return {"status": "ok", "type": f"grass"}

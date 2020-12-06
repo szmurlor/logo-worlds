@@ -20,8 +20,9 @@ CORS(app)
 
 # database connection
 try:
-    connection = DataBase().get()
-    connection.close()
+    pass
+    #connection = DataBase().get()
+    #connection.close()
 except Exception as ex:
     logger.error(cn.DB_UNAVAILABLE, exc_info=True)
     print("Database unavailable")
@@ -31,13 +32,26 @@ api = Api(title="Logo Worlds API", prefix="/worlds/api/v1", description="Logo Wo
 api.init_app(app)
 
 # Flask app configurations
-app.config['SQLALCHEMY_BINDS'] = {
-                                    'bind_db': config['database']['db_url']
-                                 }
+app.config['SQLALCHEMY_DATABASE_URI'] = config['database']['db_url']
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 app.config['CORS_HEADERS'] = 'Content-Type'
 
 # SQLAlchemy instantiation
 db = SQLAlchemy(app)
-db.create_all(bind=['bind_db'])
+import core.models
 db.create_all()
+
+logger.info("Created database schema.")
+
+from routes.worlds import worlds
+
+from sqlalchemy import inspect
+inspector = inspect(db.engine)
+schemas = inspector.get_schema_names()
+
+print(db.engine)
+for schema in schemas:
+    print("schema: %s" % schema)
+    for table_name in inspector.get_table_names(schema=schema):
+        for column in inspector.get_columns(table_name, schema=schema):
+            print("Column: %s" % column)

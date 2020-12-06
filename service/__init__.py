@@ -1,1 +1,0 @@
-from routes.worlds import worlds
