@@ -38,10 +38,11 @@ app.config['CORS_HEADERS'] = 'Content-Type'
 
 # SQLAlchemy instantiation
 db = SQLAlchemy(app)
-import core.models
-db.create_all()
 
-logger.info("Created database schema.")
+if config["database"]["bootstrapdb"]:
+    from core.bootstrapdb import bootstrapdb
+    bootstrapdb()
+
 
 from routes.worlds import worlds
 
