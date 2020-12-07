@@ -3,7 +3,7 @@ from flask import request
 from flask_restx import Resource, fields
 
 # local imports
-from core.models import World
+from core.models import World, WorldField
 import misc.constants as cn
 from instance.flask_app import api
 from misc.response_generator import response_generator
@@ -43,16 +43,17 @@ world_response = api.model(
 #                                    })
 
 parser = api.parser()
-#products_post = parser.copy()
+# products_post = parser.copy()
 
-#products_post.add_argument('product_name', type=str, required=True, help='product name', location='json')
-#products_post.add_argument('product_type', type=str, required=True, help='product type', location='json')
+# products_post.add_argument('product_name', type=str, required=True, help='product name', location='json')
+# products_post.add_argument('product_type', type=str, required=True, help='product type', location='json')
 
 
 @api.route("/info/<string:token>")
 class WorldClass(Resource):
     def get(self, token):
         print(World.query.all())
+        print(WorldField.query.all())
         return {"status": f"It's ok. Token: {token}"}
 
     @api.expect(world_command)
@@ -90,7 +91,6 @@ class RotateClass(Resource):
     def post(self, token):
         print(f"{api.payload}")
         return {"name": api.payload["name"], "state": "zupa"}
-
 
 
 # @prod_api.route("/ProductInfo")
