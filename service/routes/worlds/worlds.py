@@ -1,4 +1,5 @@
 import json
+import functools
 from flask import request
 from flask_restx import Resource, fields
 
@@ -44,23 +45,46 @@ world_response = api.model(
 
 parser = api.parser()
 # products_post = parser.copy()
-
 # products_post.add_argument('product_name', type=str, required=True, help='product name', location='json')
 # products_post.add_argument('product_type', type=str, required=True, help='product type', location='json')
 
+def worlds_answer(fun):
+    @functools.wraps(fun)
+    def _wrapper(*args,**kwargs):
+        error = None
+        payload = ""
+        try:
+            payload = fun(*args, **kwargs)
+        except Exception as e:
+            status = "Error"
+            error = str(e)
+        if error is None:
+            return {
+                "status": "Success",
+                "payload": payload
+            }
+        else:
+            return {
+                "status": "Error",
+                "error": error,
+                "payload": payload
+            }
+
+    return _wrapper
 
 @api.route("/info/<string:token>")
 class WorldClass(Resource):
+    @worlds_answer
     def get(self, token):
-        print(World.query.all())
-        print(WorldField.query.all())
-        return {"status": f"It's ok. Token: {token}"}
+        w = World.query.filter_by(token=token).one()
+        logger.info(w)
+        return {"name": w.name, "current_x": w.pos_x, "current_y": w.pos_y }
 
-    @api.expect(world_command)
-    @api.marshal_with(world_response)
-    def post(self, token):
-        print(f"{api.payload}")
-        return {"name": api.payload["name"], "state": "zupa"}
+    # @api.expect(world_command)
+    # @api.marshal_with(world_response)
+    # def post(self, token):
+    #     print(f"{api.payload}")
+    #     return {"name": api.payload["name"], "state": "zupa"}
 
 
 @api.route("/move/<string:token>")
@@ -86,11 +110,11 @@ class RotateClass(Resource):
     def get(self, token, direction):
         return {"status": f"Ok"}
 
-    @api.expect(world_command)
-    @api.marshal_with(world_response)
-    def post(self, token):
-        print(f"{api.payload}")
-        return {"name": api.payload["name"], "state": "zupa"}
+    # @api.expect(world_command)
+    # @api.marshal_with(world_response)
+    # def post(self, token):
+    #     print(f"{api.payload}")
+    #     return {"name": api.payload["name"], "state": "zupa"}
 
 
 # @prod_api.route("/ProductInfo")
