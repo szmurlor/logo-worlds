@@ -1,10 +1,11 @@
 import json
 import functools
 from flask import request
-from flask_restx import Resource, fields
+from flask_restx import Resource, fields, marshal
 
 # local imports
 from core.models import World, WorldField
+from core.utils import *
 import misc.constants as cn
 from instance.flask_app import api
 from misc.response_generator import response_generator
@@ -12,41 +13,9 @@ from misc.service_logger import serviceLogger as logger
 from namespace import worlds_api
 from misc.db_misc_functions import db_save
 
-world_command = api.model(
-    "Command",
-    {
-        "name": fields.String,
-        "value": fields.String,
-    },
-)
-
-world_response = api.model(
-    "CommandResponse",
-    {
-        "name": fields.String,
-        "value": fields.String,
-        "state": fields.String,
-        "location_type": fields.String,
-    },
-)
-
-
-# product_display_model = api.model("products",
-#                                    {
-#                                      "product_name": fields.String(
-#                                          required=True,
-#                                          description="product name"
-#                                      ),
-#                                      "product_type": fields.String(
-#                                          required=True,
-#                                          description="product type"
-#                                      )
-#                                    })
+from routes.worlds.reponses import *
 
 parser = api.parser()
-# products_post = parser.copy()
-# products_post.add_argument('product_name', type=str, required=True, help='product name', location='json')
-# products_post.add_argument('product_type', type=str, required=True, help='product type', location='json')
 
 def worlds_answer(fun):
     @functools.wraps(fun)
@@ -72,13 +41,23 @@ def worlds_answer(fun):
 
     return _wrapper
 
+
+
 @api.route("/info/<string:token>")
 class WorldClass(Resource):
+    @api.marshal_with(world_info_response)
     @worlds_answer
     def get(self, token):
+        res = {}
         w = World.query.filter_by(token=token).one()
-        logger.info(w)
-        return {"name": w.name, "current_x": w.pos_x, "current_y": w.pos_y }
+
+        if (w is not None):
+            register_step(w, 'info')
+            make_info(res, w)
+        else:
+            raise Exception( f"Unable to find world with token: '{token}'" )
+
+        return res
 
     # @api.expect(world_command)
     # @api.marshal_with(world_response)
@@ -90,25 +69,66 @@ class WorldClass(Resource):
 @api.route("/move/<string:token>")
 class MoveClass(Resource):
     def get(self, token):
-        return {"status": "ok", "type": f"grass"}
+        res = {}
+        w = World.query.filter_by(token=token).one()
+
+        if (w is not None):
+            register_step(w, 'forward')
+            (x,y) = forward(w)
+            if (can_enter(w, x, y)):
+                w.pos_x = x
+                w.pos_y = y
+
+                ###########
+                db_save(w)
+                ###########
+    
+        make_info(res, w)
+        return res
 
 
 @api.route("/explore/<string:token>")
 class ExploreClass(Resource):
-    def get(self, token):
-        return {"status": "ok", "type": f"grass"}
 
-
-@api.route("/locationinfo/<string:token>")
-class LocationInfoClass(Resource):
+    @worlds_answer
     def get(self, token):
-        return {"type": f"box"}
+        res = {}
+        w = World.query.filter_by(token=token).one()
+
+        if (w is not None):
+            register_step(w, 'explore')
+            res["fields"] = []
+            for x,y in look_at(w):
+                loc = WorldField.query.filter_by(x=x, y=y,world_id=w.id).one()
+                
+                if loc is not None:
+                    res["fields"].append( {"x": x, 
+                                    "y": y, 
+                                    "type": loc.type
+                                    } 
+                                )
+                else:
+                    res["fields"].append( {"x": x, "y": y, type: "not found"} )
+                
+        else:
+            raise Exception( f"Unable to find world with token: '{token}'" )
+
+        return res
 
 
 @api.route("/rotate/<string:token>/<string:direction>")
 class RotateClass(Resource):
+
+    @worlds_answer
     def get(self, token, direction):
-        return {"status": f"Ok"}
+        res = {}
+        w = World.query.filter_by(token=token).one()
+        if w is not None:
+            register_step(w, 'rotate', direction)
+            rotate(w, direction)
+        
+        make_info(res, w)
+        return res
 
     # @api.expect(world_command)
     # @api.marshal_with(world_response)
@@ -116,6 +136,28 @@ class RotateClass(Resource):
     #     print(f"{api.payload}")
     #     return {"name": api.payload["name"], "state": "zupa"}
 
+@api.route("/history/<string:token>/<string:session>")
+class RotateClass(Resource):
+
+    @worlds_answer
+    def get(self, token, session):
+        res = {}
+        w = World.query.filter_by(token=token).one()
+        if w is not None:
+            res['session'] = session
+            res['history'] = []
+            for wc in WorldCommand.query.filter_by(world_id=w.id, session=session):
+                res['history'].append( {
+                                        'step': wc.step, 
+                                        'command': wc.command, 
+                                        'args': "" if wc.args is None else wc.args,
+                                        'host': wc.host,
+                                        'time': str(wc.time)
+                                    } 
+                                )
+        res["current_world"] = {}
+        make_info(res["current_world"], w)
+        return res
 
 # @prod_api.route("/ProductInfo")
 # class ProductsInfo(Resource):

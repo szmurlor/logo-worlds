@@ -13,9 +13,14 @@ def bootstrapdb():
     w1 = World(name="First world", token="qwerty")
     w1.pos_x = 1
     w1.pos_y = 1
-    w1.direction = "E"
+    w1.direction = "ESWN"
+    w1.session = "pierwsza"
     db_save(w1)
     w2 = World(name="Second world", token="qwerty123")
+    w2.pos_x = 1
+    w2.pos_y = 1
+    w2.direction = "NESW"
+    w1.session = "jejku"
     db_save(w2)
 
     a = [
