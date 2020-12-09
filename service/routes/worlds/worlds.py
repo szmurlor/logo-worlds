@@ -230,7 +230,7 @@ class CreateWorldClass(Resource):
         else:
             raise Exception("Invalid authorization token.")
 
-        return res
+        return {}
 
 
 @worlds_api.route("/structure/<string:auth_token>/<string:token>")
