@@ -1,5 +1,6 @@
 import json
 import functools
+import uuid
 from flask import request
 from flask_restx import Resource, fields, marshal
 
@@ -12,6 +13,7 @@ from misc.response_generator import response_generator
 from misc.service_logger import serviceLogger as logger
 from namespace import worlds_api
 from misc.db_misc_functions import db_save
+from instance.config import config
 
 from routes.worlds.reponses import *
 
@@ -43,21 +45,19 @@ def worlds_answer(fun):
 
 
 
-@api.route("/info/<string:token>")
+@worlds_api.route("/info/<string:token>")
 class WorldClass(Resource):
-    @api.marshal_with(world_info_response)
+    @api.marshal_with(world_info_response, skip_none=True)
     @worlds_answer
     def get(self, token):
-        res = {}
         w = World.query.filter_by(token=token).one()
 
         if (w is not None):
             register_step(w, 'info')
-            make_info(res, w)
         else:
             raise Exception( f"Unable to find world with token: '{token}'" )
 
-        return res
+        return make_info(w)
 
     # @api.expect(world_command)
     # @api.marshal_with(world_response)
@@ -66,8 +66,11 @@ class WorldClass(Resource):
     #     return {"name": api.payload["name"], "state": "zupa"}
 
 
-@api.route("/move/<string:token>")
+@worlds_api.route("/move/<string:token>")
 class MoveClass(Resource):
+
+    @api.marshal_with(move_response, skip_none=True)
+    @worlds_answer
     def get(self, token):
         res = {}
         w = World.query.filter_by(token=token).one()
@@ -83,13 +86,13 @@ class MoveClass(Resource):
                 db_save(w)
                 ###########
     
-        make_info(res, w)
-        return res
+        return make_info(w)
 
 
-@api.route("/explore/<string:token>")
+@worlds_api.route("/explore/<string:token>")
 class ExploreClass(Resource):
 
+    @api.marshal_with(explore_response, skip_none=True)
     @worlds_answer
     def get(self, token):
         res = {}
@@ -116,19 +119,25 @@ class ExploreClass(Resource):
         return res
 
 
-@api.route("/rotate/<string:token>/<string:direction>")
-class RotateClass(Resource):
+@worlds_api.route("/reset/<string:token>")
+class ResetClass(Resource):
 
+    @api.marshal_with(world_info_response, skip_none=True)
     @worlds_answer
-    def get(self, token, direction):
-        res = {}
+    def get(self, token):
         w = World.query.filter_by(token=token).one()
         if w is not None:
-            register_step(w, 'rotate', direction)
-            rotate(w, direction)
+            w.step = 0
+            w.pos_x = 1
+            w.pos_y = 1
+            w.session = str(uuid.uuid4())
+            register_step(w, 'reset', w.session)
+
+            ############
+            db_save(w)
+            ############
         
-        make_info(res, w)
-        return res
+        return make_info(w)
 
     # @api.expect(world_command)
     # @api.marshal_with(world_response)
@@ -136,9 +145,30 @@ class RotateClass(Resource):
     #     print(f"{api.payload}")
     #     return {"name": api.payload["name"], "state": "zupa"}
 
-@api.route("/history/<string:token>/<string:session>")
+
+@worlds_api.route("/rotate/<string:token>/<string:direction>")
 class RotateClass(Resource):
 
+    @api.marshal_with(rotate_response, skip_none=True)
+    @worlds_answer
+    def get(self, token, direction):
+        w = World.query.filter_by(token=token).one()
+        if w is not None:
+            register_step(w, 'rotate', direction)
+            rotate(w, direction)
+        
+        return make_info(w)
+
+    # @api.expect(world_command)
+    # @api.marshal_with(world_response)
+    # def post(self, token):
+    #     print(f"{api.payload}")
+    #     return {"name": api.payload["name"], "state": "zupa"}
+
+@worlds_api.route("/history/<string:token>/<string:session>")
+class HistoryClass(Resource):
+
+    @api.marshal_with(history_response, skip_none=True)
     @worlds_answer
     def get(self, token, session):
         res = {}
@@ -155,58 +185,74 @@ class RotateClass(Resource):
                                         'time': str(wc.time)
                                     } 
                                 )
-        res["current_world"] = {}
-        make_info(res["current_world"], w)
+        res["current_world"] = make_info(w)
         return res
 
-# @prod_api.route("/ProductInfo")
-# class ProductsInfo(Resource):
-#     def get(self):
-#         """
-#         GET request endpoint of ProductsInfo
-#         :return:
-#             "Hello world, from Products!"
-#         """
-#         logger.info("testing accessibility of products endpoint")
-#         return "Hello world, from Products!"
 
-#     @prod_api.expect(product_display_model, validate=True)
-#     def post(self):
-#         """
-#         add products and product details.
-#         :return:
-#             {"payload" : "Product details added successfully."}
-#         """
-#         try:
-#             data = request.data
-#             if type(data) == bytes:
-#                 data = data.decode('utf-8')
+@worlds_api.route("/create/<string:auth_token>")
+class CreateWorldClass(Resource):
 
-#             data = json.loads(data)
+    @worlds_api.expect(create_world_request)
+    @worlds_api.marshal_with(create_world_response, skip_none=True)
+    @worlds_answer
+    def post(self, auth_token):
+        if (auth_token == config['security']['admin_pass']):
+            print(f"Payload: {worlds_api.payload}")
+            w = World()
+            w.direction = "NESW"
+            w.name = worlds_api.payload['name']
+            w.pos_x = 1 if worlds_api.payload['start_x'] == None else worlds_api.payload['start_x']
+            w.pos_y = 1 if worlds_api.payload['start_y'] == None else worlds_api.payload['start_y']
+            w.token = str(uuid.uuid4())
+            w.step = 0
+            w.session = 'Initial'
 
-#             product_name = str(data['product_name'])
-#             product_type = float(data['product_type'])
+            #############
+            db_save(w)
+            #############
 
-#             new_product = Products(product_name=product_name, product_type=product_type)
+            register_step(w, "created")
 
-#             db_save(new_product)
-#             logger.info(cn.PRODUCT_ADDED_SUCC)
-#             return response_generator(cn.PRODUCT_ADDED_SUCC, status=201)
+            for field in worlds_api.payload['fields']:
+                wf = WorldField(world_id = w.id)
+                wf.x = field['x']
+                wf.y = field['y']
+                wf.type = field['type']
 
-#         except Exception as e:
-#             logger.error(cn.INTERNAL_SERV_ERR, exc_info=True)
-#             return response_generator(cn.INTERNAL_SERV_ERR, status=500)
+                #############
+                db_save(wf)
+                #############
 
-#     @prod_api.doc(False)
-#     def put(self):
-#         """
-#         PUT request endpoint of ProductsInfo
-#         """
-#         api.abbort(403)
+            return {
+                "token": w.token,
+                "world_info": make_info(w)
+            }
+        else:
+            raise Exception("Invalid authorization token.")
 
-#     @prod_api.doc(False)
-#     def delete(self):
-#         """
-#         DELETE request endpoint of ProductsInfo
-#         """
-#         api.abbort(403)
+        return res
+
+
+@worlds_api.route("/structure/<string:auth_token>/<string:token>")
+class GetWorldStructureClass(Resource):
+
+    @worlds_api.marshal_with(world_response, skip_none=True)
+    @worlds_answer
+    def get(self, auth_token, token):
+        if (auth_token == config['security']['admin_pass']):
+            w = World.query.filter_by(token=token).one()
+
+            res = {
+                "world_info": make_info(w),
+                "fields": []
+            }
+
+            for wf in w.fields:
+                res["fields"].append({"x": wf.x, "y": wf.y, "type": wf.type, "bonus": wf.bonus})
+
+        else:
+            raise Exception("Invalid authorization token.")
+
+        return res
+
+   

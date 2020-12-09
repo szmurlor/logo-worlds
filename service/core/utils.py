@@ -33,7 +33,10 @@ def can_enter(w, x, y):
     return False
 
 
-def make_info(res, w):
+def make_info(w, res=None):
+    if (res is None):
+        res = {}
+
     res["name"] = w.name
     res["current_x"] = w.pos_x
     res["current_y"] = w.pos_y
@@ -44,7 +47,9 @@ def make_info(res, w):
     loc = WorldField.query.filter_by(x=w.pos_x, y=w.pos_x,world_id=w.id).one()
     if loc is not None:
         res["field_type"] = loc.type
-        res["filed_bonus"] = "" if loc.bonus is None else loc.bonus
+        res["field_bonus"] = "" if loc.bonus is None else loc.bonus
+
+    return res
 
 
 def rotate(w, direction):
