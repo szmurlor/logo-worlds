@@ -44,10 +44,13 @@ def make_info(w, res=None):
     res["direction"] = w.direction[0]
     res["step"] = w.step
 
-    loc = WorldField.query.filter_by(x=w.pos_x, y=w.pos_x,world_id=w.id).one()
-    if loc is not None:
-        res["field_type"] = loc.type
-        res["field_bonus"] = "" if loc.bonus is None else loc.bonus
+    try:
+        loc = WorldField.query.filter_by(x=w.pos_x, y=w.pos_x,world_id=w.id).one()
+        if loc is not None:
+            res["field_type"] = loc.type
+            res["field_bonus"] = "" if loc.bonus is None else loc.bonus
+    except:
+        pass
 
     return res
 

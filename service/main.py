@@ -9,6 +9,6 @@ if __name__ == '__main__':
 
     app.run(host=config['host_service']['host'],
             port=int(config['host_service']['port']),
-            threaded=True,
-            debug=True
+            threaded=config['host_service'].as_bool('threaded'),
+            debug=config['host_service'].as_bool('debug')
             )
