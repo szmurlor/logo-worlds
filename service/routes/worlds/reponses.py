@@ -165,3 +165,20 @@ world_response = api.model(
         "payload": fields.Nested(world, skip_none=True)
     }
 )
+
+world_list = api.model(
+    "WorldList",
+    {
+        "size": fields.Integer,
+        "worlds": fields.List(fields.Nested(world_info, skip_none=True))
+    }
+)
+
+world_list_response = api.model(
+    "WorldListResponse",
+    {
+        "status": fields.String, 
+        "error": fields.String, 
+        "payload": fields.Nested(world_list, skip_none=True)
+    }
+)

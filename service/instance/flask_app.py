@@ -39,20 +39,21 @@ app.config['CORS_HEADERS'] = 'Content-Type'
 # SQLAlchemy instantiation
 db = SQLAlchemy(app)
 
-if config["database"]["bootstrapdb"]:
+if config["database"].as_bool("bootstrapdb"):
     from core.bootstrapdb import bootstrapdb
     bootstrapdb()
 
 
 from routes.worlds import worlds
 
-from sqlalchemy import inspect
-inspector = inspect(db.engine)
-schemas = inspector.get_schema_names()
+if config["database"].as_bool("dumpdb"):
+    from sqlalchemy import inspect
+    inspector = inspect(db.engine)
+    schemas = inspector.get_schema_names()
 
-print(db.engine)
-for schema in schemas:
-    print("schema: %s" % schema)
-    for table_name in inspector.get_table_names(schema=schema):
-        for column in inspector.get_columns(table_name, schema=schema):
-            print("Column: %s" % column)
+    print(db.engine)
+    for schema in schemas:
+        print("schema: %s" % schema)
+        for table_name in inspector.get_table_names(schema=schema):
+            for column in inspector.get_columns(table_name, schema=schema):
+                print("Column: %s" % column)

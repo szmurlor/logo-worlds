@@ -255,4 +255,27 @@ class GetWorldStructureClass(Resource):
 
         return res
 
-   
+
+@worlds_api.route("/list_worlds/<string:auth_token>")
+class GetListWorldsClass(Resource):
+
+    @worlds_api.marshal_with(world_list_response, skip_none=True)
+    @worlds_answer
+    def get(self, auth_token):
+        if (auth_token == config['security']['admin_pass']):
+            res = {
+                "worlds": []
+            }
+
+            c = 0
+            for w in World.query.all():
+                res['worlds'].append(make_info(w))
+                c += 1
+
+            res["size"] = c
+
+        else:
+            raise Exception("Invalid authorization token.")
+
+        return res
+
