@@ -27,8 +27,10 @@ def look_at(w):
 def can_enter(w, x, y):
     loc = WorldField.query.filter_by(x=x, y=y,world_id=w.id).one()
     if loc is not None and loc.type == "grass":
-        print(f"can enter: {loc.type}")
+        print(f"can enter: {loc.type} at ({x},{y})")
         return True
+    else:
+        print(f"can not enter: {loc.type} at ({x},{y})")
 
     return False
 
