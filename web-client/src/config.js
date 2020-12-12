@@ -1,0 +1,1 @@
+export var LOGO_WORLDS_URL="http://localhost:5000/worlds/api/v1/worlds"

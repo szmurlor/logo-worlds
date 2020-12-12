@@ -11,16 +11,6 @@ var init = {
   mode: "cors"
 };
 
-fetch("http://localhost:5000/", init)
-  .then((res) => {
-    console.log(res);
-  })
-  .catch((err) => {
-    console.log(err.message);
-  });
-
-console.log("Akuku");
-
 export default function App() {
   return (
     <div className="App">

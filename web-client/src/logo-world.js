@@ -1,6 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { Route, Link } from "react-router-dom";
 import { Container, Row } from "react-bootstrap";
+import {LOGO_WORLDS_URL} from "./config"
+
+var tilesImg = new Image();
+tilesImg.src = "/tiles_32.png";
+
+var chImg = new Image();
+chImg.src = "/character.png";
+
+
 
 function get_initial_array() {
   console.log("Creating initial board.");
@@ -13,23 +22,40 @@ function get_initial_array() {
 }
 
 function Board(props) {
+  useEffect( () => {
+    var c = document.getElementById("cboard");
+    var ctx = c.getContext('2d');
+    var r,c;
+    for (r=0;r<25;r++) {
+      for (c=0;c<25;c++) {
+        if (props.board[c][r] == -1) {
+            ctx.drawImage(tilesImg, 3*32,2*32,32,32, r*32, c*32, 32,32);
+        }
+        if (props.board[c][r] == 0) {
+          ctx.drawImage(tilesImg, 6*32,1*32,32,32, r*32, c*32, 32,32);
+        }
+    }
+    }
+    ctx.drawImage(chImg, 0, 0, 24, 32, props.x*32, 24*32-props.y*32, 24,24);
+  })
   return (
-    <table>
-      <tbody>
-        {props.board.map((row, idx_row) => {
-          return (
-            <tr key={idx_row}>
-              {row.map((col, idx_col) => {
-                if (props.x === idx_col && props.y === 24 - idx_row)
-                  return <td key={idx_col}>{props.d}</td>;
-                else if (col == -1) return <td key={idx_col}></td>;
-                else return <td key={idx_col}>{col}</td>;
-              })}
-            </tr>
-          );
-        })}
-      </tbody>
-    </table>
+    <canvas id="cboard" width={25*32} height={25*32}></canvas>
+    // <table>
+    //   <tbody>
+    //     {props.board.map((row, idx_row) => {
+    //       return (
+    //         <tr key={idx_row}>
+    //           {row.map((col, idx_col) => {
+    //             if (props.x === idx_col && props.y === 24 - idx_row)
+    //               return <td key={idx_col}>{props.d}</td>;
+    //             else if (col == -1) return <td key={idx_col}></td>;
+    //             else return <td key={idx_col}>{col}</td>;
+    //           })}
+    //         </tr>
+    //       );
+    //     })}
+    //   </tbody>
+    // </table>
   );
 }
 
@@ -43,9 +69,7 @@ export function LogoWorld(props) {
   useEffect(() => {
     console.log(worldToken);
 
-    fetch(
-      `http://edi.iem.pw.edu.pl:30000/worlds/api/v1/worlds/info/${worldToken}`
-    )
+    fetch(`${LOGO_WORLDS_URL}/info/${worldToken}`)
       .then((res) => {
         console.log(res);
         return res.json();
@@ -61,9 +85,7 @@ export function LogoWorld(props) {
         setWorldInfo(null);
       });
 
-    fetch(
-      `http://edi.iem.pw.edu.pl:30000/worlds/api/v1/worlds/history/${worldToken}/${worldSession}`
-    )
+    fetch(`${LOGO_WORLDS_URL}/history/${worldToken}/${worldSession}`)
       .then((res) => {
         console.log(res);
         return res.json();
@@ -82,9 +104,7 @@ export function LogoWorld(props) {
   const onRotateClick = (e, direction) => {
     e.preventDefault();
 
-    fetch(
-      `http://edi.iem.pw.edu.pl:30000/worlds/api/v1/worlds/rotate/${worldToken}/${direction}`
-    )
+    fetch(`${LOGO_WORLDS_URL}/rotate/${worldToken}/${direction}`)
       .then((res) => {
         console.log(res);
         return res.json();
@@ -103,9 +123,7 @@ export function LogoWorld(props) {
   const onMoveClick = (e, direction) => {
     e.preventDefault();
 
-    fetch(
-      `http://edi.iem.pw.edu.pl:30000/worlds/api/v1/worlds/move/${worldToken}`
-    )
+    fetch(`${LOGO_WORLDS_URL}/move/${worldToken}`)
       .then((res) => {
         console.log(res);
         return res.json();
@@ -122,6 +140,14 @@ export function LogoWorld(props) {
         setWorldInfo(null);
       });
   };
+
+  useEffect(() => {
+    var can = document.getElementById("can");
+    var ctx = can.getContext('2d');
+    console.log(tilesImg);
+    ctx.drawImage(tilesImg, 0,0,64,64, 100,100,64,64);
+    console.log(can);
+  })
 
   return (
     <Container>
@@ -201,6 +227,9 @@ export function LogoWorld(props) {
             Brak historii świata o tokenie: {worldToken} i sesji: {worldSession}
           </span>
         )}
+      </Row>
+      <Row>
+        <canvas id="can" width="300" height="300" />
       </Row>
     </Container>
   );
