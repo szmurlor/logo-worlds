@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Route, Link } from "react-router-dom";
 import { Container, Row } from "react-bootstrap";
 import {LOGO_WORLDS_URL, TW, BW, BC} from "./config"
@@ -123,6 +123,7 @@ export function LogoWorld(props) {
 
   const onRotateClick = (e, direction) => {
     e.preventDefault();
+    console.log(worldToken);
 
     fetch(`${LOGO_WORLDS_URL}/rotate/${worldToken}/${direction}`)
       .then((res) => {
@@ -137,8 +138,9 @@ export function LogoWorld(props) {
       });
   };
 
-  const onMoveClick = (e, direction) => {
+  const onMoveClick = (e) => {
     e.preventDefault();
+    console.log(worldToken);
 
     fetch(`${LOGO_WORLDS_URL}/move/${worldToken}`)
       .then((res) => {
@@ -175,6 +177,30 @@ export function LogoWorld(props) {
         setWorldInfo(null);
       });
   };
+
+  const handleKeydown = useCallback((e) => {
+    console.log(worldToken)
+    if (e.code === 'ArrowUp') {
+      e.preventDefault();
+      onMoveClick(e);
+    } else if (e.code === 'ArrowLeft') {
+      e.preventDefault();
+      onRotateClick(e, 'left');
+    } else if (e.code === 'ArrowRight') {
+      e.preventDefault();
+      onRotateClick(e,'right');
+    } else if (e.code === 'ArrowDown') {
+      e.preventDefault();
+      onExploreClick(e);
+    }
+  },[worldToken, board, refresh])
+
+  useEffect(() => {
+    window.addEventListener('keydown', handleKeydown);
+    return () => {
+      window.removeEventListener('keydown', handleKeydown);
+    };
+  }, [handleKeydown])
 
   return (
     <Container>
