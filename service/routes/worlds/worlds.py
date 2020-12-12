@@ -70,11 +70,13 @@ class MoveClass(Resource):
         w = World.query.filter_by(token=token).one()
 
         if (w is not None):
-            register_step(w, 'forward')
             (x,y) = forward(w)
             if (can_enter(w, x, y)):
                 w.pos_x = x
                 w.pos_y = y
+
+                for c in range(cost_of_enter(w,x,y)):
+                    register_step(w, f'forward {c}')
 
                 ###########
                 db_save(w)

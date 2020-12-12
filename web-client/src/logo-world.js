@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { Route, Link } from "react-router-dom";
 import { Container, Row } from "react-bootstrap";
 import {LOGO_WORLDS_URL, TW, BW, BC} from "./config"
+import {Button} from "react-bootstrap"
+import {Arrow90degLeft, Arrow90degRight} from 'react-bootstrap-icons';
 
 var tilesImg = new Image();
 tilesImg.src = "/tilesn.png";
@@ -17,7 +19,7 @@ function get_initial_board() {
   var a = Array(BW);
   for (var i = 0; i < BW; i++) {
     a[i] = Array(BW);
-    a[i].fill(0);
+    a[i].fill("UNKNOWN");
   }
 
   return a;
@@ -27,11 +29,13 @@ function Board(props) {
   const drawTile = (ctx, what, x, y) => {
     var tx,ty
     if (what === "GRASS") 
-      [tx,ty] = [3,2]
-    else if (what === "SAND")
-      [tx,ty] = [5,3]
+      [tx,ty] = [3,0]
+    else if (what === "UNKNOWN")
+      [tx,ty] = [4,0]
     else if (what === "WALL")
-      [tx,ty] = [6,1]
+      [tx,ty] = [0,0]
+    else if (what === "SAND")
+      [tx,ty] = [2,0]
     ctx.drawImage(tilesImg, tx*TW, ty*TW,TW,TW, x*TW, y*TW, TW,TW);
   }
 
@@ -45,7 +49,7 @@ function Board(props) {
       tx = 1
     else if (d === "W")
       tx = 2
-    ctx.drawImage(chImg, tx*TW, 0, TW, TW, (BC + x)*TW, (BC-y)*TW, TW,TW);
+    ctx.drawImage(chImg, tx*TW, 0, TW, TW, (BC + x)*TW, (BW-BC-y)*TW, TW,TW);
   }
 
 
@@ -56,21 +60,13 @@ function Board(props) {
     var bx,by;
     for (bx=0; bx<BW; bx++) {
       for (by=0; by<BW; by++) {
-        if (props.board[by][bx] == -1) {
-            drawTile(ctx, 'GRASS', bx, by)
-        } else if (props.board[by][bx] == 0) {
-            drawTile(ctx, 'SAND', bx, by)
-        } else if (props.board[by][bx] == -2) {
-            drawTile(ctx, 'WALL', bx, by)
-        }
-        
+        drawTile(ctx, props.board[by][bx], bx, by)        
       }
     }
-
     drawTank(ctx, props.x, props.y, props.direction);
   })
   return (
-    <canvas id="cboard" width={25*32} height={25*32}></canvas>
+    <canvas id="cboard" width={BW*TW} height={BW*TW}></canvas>
   );
 }
 
@@ -96,6 +92,7 @@ export function LogoWorld(props) {
           setWorldInfo(json.payload);
         } else 
           setWorldInfo(null);
+        setRefresh(refresh+1)
       })
       .catch((e) => {
         setWorldInfo(null);
@@ -120,7 +117,7 @@ export function LogoWorld(props) {
 
   useEffect(()=> {
     if (worldInfo != null) {
-      board[BC-worldInfo.current_y][BC+worldInfo.current_x] = -1;
+      board[BW-BC-worldInfo.current_y][BC+worldInfo.current_x] = worldInfo.field_type.toUpperCase();
     }
   })
 
@@ -149,7 +146,7 @@ export function LogoWorld(props) {
       }).then((json) => {
         if (json.status === "Success") {
           setWorldInfo(json.payload);
-          board[BC-json.payload.current_y][BC+json.payload.current_x] = -1;
+          board[BW-BC-json.payload.current_y][BC+json.payload.current_x] = json.payload.field_type.toUpperCase();
         } else 
           setWorldInfo(null);
       }).catch((e) => {
@@ -168,12 +165,7 @@ export function LogoWorld(props) {
         if (json.status === "Success") {
           json.payload.fields.forEach(({x,y,type}) => {
             console.log(type)
-            if (type === "wall")
-              board[BC-y][BC+x] = -2;
-            else if (type === "grass")
-              board[BC-y][BC+x] = -1;
-            else 
-              board[BC-y][BC+x] = 0;
+            board[BW-BC-y][BC+x] = type.toUpperCase();
           });
           setRefresh(refresh+1)
         } else 
@@ -212,7 +204,7 @@ export function LogoWorld(props) {
           <ul>
             <li>Nazwa świata: {worldInfo.name}</li>
             <li>
-              Obecna pozycja: {worldInfo.current_x}, {worldInfo.current_x}
+              Obecna pozycja: {worldInfo.current_x}, {worldInfo.current_y}
             </li>
             <li>
               Obecne pole: {worldInfo.field_type}, {worldInfo.field_bonus}
@@ -227,12 +219,11 @@ export function LogoWorld(props) {
       </Row>
 
       <Row>
-        <div>
-          Komendy:&nbsp;
-          <button onClick={(e) => onRotateClick(e, "right")}>W prawo</button>
-          <button onClick={(e) => onRotateClick(e, "left")}>W lewo</button>
-          <button onClick={(e) => onMoveClick(e)}>Do przodu</button>
-          <button onClick={(e) => onExploreClick(e)}>Exploruj z przodu</button>
+        <div className="btn-group" role="group" >
+          <Button className="btn btn-primary" onClick={(e) => onRotateClick(e, "left")}><Arrow90degLeft/> W lewo</Button>
+          <Button className="btn btn-secondary" onClick={(e) => onMoveClick(e)}>Do przodu</Button>
+          <Button className="btn btn-primary" onClick={(e) => onRotateClick(e, "right")}><Arrow90degRight/> W prawo</Button>
+          <Button className="btn btn-info" onClick={(e) => onExploreClick(e)}>Exploruj z przodu</Button>
         </div>
       </Row>
       <Row>

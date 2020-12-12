@@ -24,18 +24,25 @@ def bootstrapdb():
     db_save(w2)
 
     a = [
-        [0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 1, 1, 1, 1, 1, 1, 1, 0],
-        [0, 1, 1, 1, 0, 0, 0, 1, 0],
-        [0, 1, 1, 0, 0, 1, 0, 1, 0],
-        [0, 1, 1, 1, 1, 1, 1, 1, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+        [0, 1, 2, 2, 0, 0, 0, 1, 1, 0, 1, 0],
+        [0, 1, 1, 0, 0, 2, 0, 1, 0, 0, 1, 0],
+        [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+        [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
+        [0, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 0],
+        [0, 1, 1, 2, 0, 1, 1, 1, 1, 0, 1, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     ]
 
     for x, r in enumerate(a):
         for y, c in enumerate(r):
             if c == 0:
                 wf = WorldField(type="wall", x=x, y=y, world_id=w1.id)
-            else:
+            elif c == 1:
                 wf = WorldField(type="grass", x=x, y=y, world_id=w1.id)
+            elif c == 3:
+                wf = WorldField(type="bonus", x=x, y=y, world_id=w1.id)
+            else:
+                wf = WorldField(type="sand", x=x, y=y, world_id=w1.id)
             db_save(wf)

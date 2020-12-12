@@ -4,8 +4,6 @@ import "./styles.css";
 
 import { LogoWorld } from "./logo-world";
 
-import "bootstrap/dist/css/bootstrap.min.css";
-
 var init = {
   method: "GET",
   mode: "cors"

@@ -7,6 +7,7 @@ from datetime import datetime
 def forward(w,left=False,right=False):
     x = w.pos_x
     y = w.pos_y
+    print(f"x={x}, y={y}, d={w.direction[0]}")
     if w.direction[0] == "N":
         return x+(1 if left else -1 if right else 0),y+1
     elif w.direction[0] == "S":
@@ -30,9 +31,21 @@ def look_at(w):
 
 def can_enter(w, x, y):
     loc = WorldField.query.filter_by(x=x, y=y,world_id=w.id).one()
-    if loc is not None and loc.type == "grass":
+    if loc is not None and loc.type in ("grass","sand"):
         print(f"can enter: {loc.type} at ({x},{y})")
         return True
+    else:
+        print(f"can not enter: {loc.type} at ({x},{y})")
+
+    return False
+
+
+def cost_of_enter(w, x, y):
+    loc = WorldField.query.filter_by(x=x, y=y,world_id=w.id).one()
+    if loc is not None and loc.type == "grass":
+        return 1
+    elif loc is not None and loc.type == "sand":
+        return 3
     else:
         print(f"can not enter: {loc.type} at ({x},{y})")
 
@@ -51,7 +64,7 @@ def make_info(w, res=None):
     res["step"] = w.step
 
     try:
-        loc = WorldField.query.filter_by(x=w.pos_x, y=w.pos_x,world_id=w.id).one()
+        loc = WorldField.query.filter_by(x=w.pos_x, y=w.pos_y,world_id=w.id).one()
         if loc is not None:
             res["field_type"] = loc.type
             res["field_bonus"] = "" if loc.bonus is None else loc.bonus
