@@ -1,61 +1,76 @@
 import React, { useState, useEffect } from "react";
 import { Route, Link } from "react-router-dom";
 import { Container, Row } from "react-bootstrap";
-import {LOGO_WORLDS_URL} from "./config"
+import {LOGO_WORLDS_URL, TW, BW, BC} from "./config"
 
 var tilesImg = new Image();
-tilesImg.src = "/tiles_32.png";
+tilesImg.src = "/tilesn.png";
 
 var chImg = new Image();
-chImg.src = "/character.png";
+chImg.src = "/tank.png";
 
 
 
-function get_initial_array() {
+function get_initial_board() {
   console.log("Creating initial board.");
-  var a = Array(25);
-  for (var i = 0; i < 25; i++) {
-    a[i] = Array(25);
+
+  var a = Array(BW);
+  for (var i = 0; i < BW; i++) {
+    a[i] = Array(BW);
     a[i].fill(0);
   }
+
   return a;
 }
 
 function Board(props) {
+  const drawTile = (ctx, what, x, y) => {
+    var tx,ty
+    if (what === "GRASS") 
+      [tx,ty] = [3,2]
+    else if (what === "SAND")
+      [tx,ty] = [5,3]
+    else if (what === "WALL")
+      [tx,ty] = [6,1]
+    ctx.drawImage(tilesImg, tx*TW, ty*TW,TW,TW, x*TW, y*TW, TW,TW);
+  }
+
+  const drawTank = (ctx, x,y, d) => {
+    var tx = 0
+    if (d === "N") 
+      tx = 3
+    else if (d === "E")
+      tx = 0
+    else if (d === "S") 
+      tx = 1
+    else if (d === "W")
+      tx = 2
+    ctx.drawImage(chImg, tx*TW, 0, TW, TW, (BC + x)*TW, (BC-y)*TW, TW,TW);
+  }
+
+
+
   useEffect( () => {
     var c = document.getElementById("cboard");
     var ctx = c.getContext('2d');
-    var r,c;
-    for (r=0;r<25;r++) {
-      for (c=0;c<25;c++) {
-        if (props.board[c][r] == -1) {
-            ctx.drawImage(tilesImg, 3*32,2*32,32,32, r*32, c*32, 32,32);
+    var bx,by;
+    for (bx=0; bx<BW; bx++) {
+      for (by=0; by<BW; by++) {
+        if (props.board[by][bx] == -1) {
+            drawTile(ctx, 'GRASS', bx, by)
+        } else if (props.board[by][bx] == 0) {
+            drawTile(ctx, 'SAND', bx, by)
+        } else if (props.board[by][bx] == -2) {
+            drawTile(ctx, 'WALL', bx, by)
         }
-        if (props.board[c][r] == 0) {
-          ctx.drawImage(tilesImg, 6*32,1*32,32,32, r*32, c*32, 32,32);
-        }
+        
+      }
     }
-    }
-    ctx.drawImage(chImg, 0, 0, 24, 32, props.x*32, 24*32-props.y*32, 24,24);
+
+    drawTank(ctx, props.x, props.y, props.direction);
   })
   return (
     <canvas id="cboard" width={25*32} height={25*32}></canvas>
-    // <table>
-    //   <tbody>
-    //     {props.board.map((row, idx_row) => {
-    //       return (
-    //         <tr key={idx_row}>
-    //           {row.map((col, idx_col) => {
-    //             if (props.x === idx_col && props.y === 24 - idx_row)
-    //               return <td key={idx_col}>{props.d}</td>;
-    //             else if (col == -1) return <td key={idx_col}></td>;
-    //             else return <td key={idx_col}>{col}</td>;
-    //           })}
-    //         </tr>
-    //       );
-    //     })}
-    //   </tbody>
-    // </table>
   );
 }
 
@@ -64,58 +79,63 @@ export function LogoWorld(props) {
   const [worldSession, setWorldSession] = useState("");
   const [worldInfo, setWorldInfo] = useState(null);
   const [worldHistory, setWorldHistory] = useState(null);
-  const [board, setBoard] = useState(get_initial_array);
+  const [board, setBoard] = useState(get_initial_board);
+  const [refresh, setRefresh] = useState(1);
 
+  
+  // tylko jak zmieni się token.
   useEffect(() => {
     console.log(worldToken);
 
     fetch(`${LOGO_WORLDS_URL}/info/${worldToken}`)
       .then((res) => {
-        console.log(res);
         return res.json();
       })
       .then((json) => {
-        console.log(json);
         if (json.status === "Success") {
           setWorldInfo(json.payload);
-        } else setWorldInfo(null);
+        } else 
+          setWorldInfo(null);
       })
       .catch((e) => {
-        console.log(e);
         setWorldInfo(null);
       });
 
-    fetch(`${LOGO_WORLDS_URL}/history/${worldToken}/${worldSession}`)
-      .then((res) => {
-        console.log(res);
-        return res.json();
-      })
-      .then((json) => {
-        console.log(json);
-        if (json.status === "Success") setWorldHistory(json.payload);
-        else setWorldHistory(null);
-      })
-      .catch((e) => {
-        console.log(e);
-        setWorldInfo(null);
-      });
+    if (worldSession != null && worldSession.length > 0) {
+      fetch(`${LOGO_WORLDS_URL}/history/${worldToken}/${worldSession}`)
+        .then((res) => {
+          return res.json();
+        })
+        .then((json) => {
+          if (json.status === "Success") 
+            setWorldHistory(json.payload);
+          else 
+            setWorldHistory(null);
+        })
+        .catch((e) => {
+          setWorldInfo(null);
+        });
+    }
   }, [worldToken, worldSession]);
+
+  useEffect(()=> {
+    if (worldInfo != null) {
+      board[BC-worldInfo.current_y][BC+worldInfo.current_x] = -1;
+    }
+  })
 
   const onRotateClick = (e, direction) => {
     e.preventDefault();
 
     fetch(`${LOGO_WORLDS_URL}/rotate/${worldToken}/${direction}`)
       .then((res) => {
-        console.log(res);
         return res.json();
-      })
-      .then((json) => {
-        console.log(json);
-        if (json.status === "Success") setWorldInfo(json.payload);
-        else setWorldInfo(null);
-      })
-      .catch((e) => {
-        console.log(e);
+      }).then((json) => {
+        if (json.status === "Success") 
+          setWorldInfo(json.payload);
+        else 
+          setWorldInfo(null);
+      }).catch((e) => {
         setWorldInfo(null);
       });
   };
@@ -125,29 +145,44 @@ export function LogoWorld(props) {
 
     fetch(`${LOGO_WORLDS_URL}/move/${worldToken}`)
       .then((res) => {
-        console.log(res);
         return res.json();
-      })
-      .then((json) => {
-        console.log(json);
+      }).then((json) => {
         if (json.status === "Success") {
           setWorldInfo(json.payload);
-          board[24 - json.payload.current_y][json.payload.current_x] = -1;
-        } else setWorldInfo(null);
-      })
-      .catch((e) => {
-        console.log(e);
+          board[BC-json.payload.current_y][BC+json.payload.current_x] = -1;
+        } else 
+          setWorldInfo(null);
+      }).catch((e) => {
         setWorldInfo(null);
       });
   };
 
-  useEffect(() => {
-    var can = document.getElementById("can");
-    var ctx = can.getContext('2d');
-    console.log(tilesImg);
-    ctx.drawImage(tilesImg, 0,0,64,64, 100,100,64,64);
-    console.log(can);
-  })
+  const onExploreClick = (e, direction) => {
+    e.preventDefault();
+
+    fetch(`${LOGO_WORLDS_URL}/explore/${worldToken}`)
+      .then((res) => {
+        return res.json();
+      }).then((json) => {
+        console.log(json)
+        if (json.status === "Success") {
+          json.payload.fields.forEach(({x,y,type}) => {
+            console.log(type)
+            if (type === "wall")
+              board[BC-y][BC+x] = -2;
+            else if (type === "grass")
+              board[BC-y][BC+x] = -1;
+            else 
+              board[BC-y][BC+x] = 0;
+          });
+          setRefresh(refresh+1)
+        } else 
+          setWorldInfo(null);
+      }).catch((e) => {
+        console.log(e)
+        setWorldInfo(null);
+      });
+  };
 
   return (
     <Container>
@@ -197,7 +232,7 @@ export function LogoWorld(props) {
           <button onClick={(e) => onRotateClick(e, "right")}>W prawo</button>
           <button onClick={(e) => onRotateClick(e, "left")}>W lewo</button>
           <button onClick={(e) => onMoveClick(e)}>Do przodu</button>
-          <button>Exploruj z przodu</button>
+          <button onClick={(e) => onExploreClick(e)}>Exploruj z przodu</button>
         </div>
       </Row>
       <Row>
@@ -205,7 +240,7 @@ export function LogoWorld(props) {
           board={board}
           x={worldInfo == null ? 0 : worldInfo.current_x}
           y={worldInfo == null ? 0 : worldInfo.current_y}
-          d={worldInfo == null ? "U" : worldInfo.direction}
+          direction={worldInfo == null ? "N" : worldInfo.direction}
         />
       </Row>
       <Row>

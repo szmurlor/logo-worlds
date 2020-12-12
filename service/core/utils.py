@@ -4,24 +4,28 @@ from collections import deque
 from flask import request
 from datetime import datetime
 
-def forward(w):
+def forward(w,left=False,right=False):
     x = w.pos_x
     y = w.pos_y
     if w.direction[0] == "N":
-        return x,y+1
+        return x+(1 if left else -1 if right else 0),y+1
     elif w.direction[0] == "S":
-        return x,y-1
+        return x+(-1 if left else 1 if right else 0),y-1
     elif w.direction[0] == "E":
-        return x+1,y
+        return x+1,y+(1 if left else -1 if right else 0)
     elif w.direction[0] == "W":
-        return x-1,y
+        return x-1,y+(-1 if left else 1 if right else 0)
 
     raise Exception(f"Invalid world direction: '{ + w.direction}'")
 
 
 def look_at(w):
+    fl = forward(w, left=True) 
+    yield fl
     f = forward(w)
     yield f
+    fr = forward(w, right=True) 
+    yield fr
 
 
 def can_enter(w, x, y):

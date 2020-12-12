@@ -59,12 +59,6 @@ class WorldClass(Resource):
 
         return make_info(w)
 
-    # @api.expect(world_command)
-    # @api.marshal_with(world_response)
-    # def post(self, token):
-    #     print(f"{api.payload}")
-    #     return {"name": api.payload["name"], "state": "zupa"}
-
 
 @worlds_api.route("/move/<string:token>")
 class MoveClass(Resource):
