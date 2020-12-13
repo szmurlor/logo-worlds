@@ -13,7 +13,7 @@ from misc.service_logger import serviceLogger as logger
 from core.db_connection import DataBase
 
 # flask application initialization
-app = Flask(__name__)
+app = Flask(__name__, static_folder="../web-client-build", static_url_path="")
 
 # cross origin resource sharing
 CORS(app)
@@ -22,21 +22,18 @@ CORS(app)
 try:
     pass
     #connection = DataBase().get()
-    #connection.close()
+    # connection.close()
 except Exception as ex:
     logger.error(cn.DB_UNAVAILABLE, exc_info=True)
     print("Database unavailable")
     connection = None
 
-#@property
-#def specs_url(self):
-#    print(f"Returning: {url_for(self.endpoint('specs'), _external=True, _scheme='https') }")
-#    return "https://www.ee.pw.edu.pl/logo-worlds/worlds/api/v1/swagger.json" #url_for(self.endpoint('specs'), _external=True, _scheme='https')
-
-#Api.specs_url = specs_url
-
-
-api = Api(title="Logo Worlds API", prefix="/worlds/api/v1", description="Logo Worlds Simulator (c) Robert Szmurlo 2020")
+api = Api(title="Logo Worlds API", prefix="/worlds/api/v1",
+          description="Logo Worlds Simulator (c) Robert Szmurlo 2020\n\n"
+          "Przejdź do <a href='index.html' target='_blank'>Logo World Game</a> aby ZAGRAĆ w grę we własnym świecie :-)\n\n"
+          "<img src='world_demo.png' height='200px' alt='Logo World Demo' />\n\n"
+          "Instrukcja może być znaleziona tutaj: <a href='https://github.com/szmurlor/logo-worlds/wiki/Instrukcja---Podstawy-Programowania---J%C4%99zyk-c' target='_blank'>Instrukcja Podstawy Programowania</a>\n\n"
+)
 api.init_app(app)
 
 # Flask app configurations
@@ -50,7 +47,6 @@ db = SQLAlchemy(app)
 if config["database"].as_bool("bootstrapdb"):
     from core.bootstrapdb import bootstrapdb
     bootstrapdb()
-
 
 from routes.worlds import worlds
 
