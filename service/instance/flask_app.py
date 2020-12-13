@@ -1,7 +1,7 @@
 # instance/flask_app.py
 
 # third-party imports
-from flask import Flask
+from flask import Flask, url_for
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from flask_restx import Api
@@ -27,6 +27,14 @@ except Exception as ex:
     logger.error(cn.DB_UNAVAILABLE, exc_info=True)
     print("Database unavailable")
     connection = None
+
+#@property
+#def specs_url(self):
+#    print(f"Returning: {url_for(self.endpoint('specs'), _external=True, _scheme='https') }")
+#    return "https://www.ee.pw.edu.pl/logo-worlds/worlds/api/v1/swagger.json" #url_for(self.endpoint('specs'), _external=True, _scheme='https')
+
+#Api.specs_url = specs_url
+
 
 api = Api(title="Logo Worlds API", prefix="/worlds/api/v1", description="Logo Worlds Simulator (c) Robert Szmurlo 2020")
 api.init_app(app)
