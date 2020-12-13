@@ -32,7 +32,7 @@ api = Api(title="Logo Worlds API", prefix="/worlds/api/v1",
           description="Logo Worlds Simulator (c) Robert Szmurlo 2020\n\n"
           "Przejdź do <a href='index.html' target='_blank'>Logo World Game</a> aby ZAGRAĆ w grę we własnym świecie :-)\n\n"
           "<img src='world_demo.png' height='200px' alt='Logo World Demo' />\n\n"
-          "Instrukcja może być znaleziona tutaj: \n\n"
+          "Instrukcja może być znaleziona tutaj: <a href='https://github.com/szmurlor/logo-worlds/wiki/Instrukcja---Podstawy-Programowania---J%C4%99zyk-c' target='_blank'>Instrukcja Podstawy Programowania</a>\n\n"
 )
 api.init_app(app)
 
