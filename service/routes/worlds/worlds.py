@@ -59,12 +59,6 @@ class WorldClass(Resource):
 
         return make_info(w)
 
-    # @api.expect(world_command)
-    # @api.marshal_with(world_response)
-    # def post(self, token):
-    #     print(f"{api.payload}")
-    #     return {"name": api.payload["name"], "state": "zupa"}
-
 
 @worlds_api.route("/move/<string:token>")
 class MoveClass(Resource):
@@ -76,11 +70,13 @@ class MoveClass(Resource):
         w = World.query.filter_by(token=token).one()
 
         if (w is not None):
-            register_step(w, 'forward')
             (x,y) = forward(w)
             if (can_enter(w, x, y)):
                 w.pos_x = x
                 w.pos_y = y
+
+                for c in range(cost_of_enter(w,x,y)):
+                    register_step(w, f'forward {c}')
 
                 ###########
                 db_save(w)
@@ -230,7 +226,7 @@ class CreateWorldClass(Resource):
         else:
             raise Exception("Invalid authorization token.")
 
-        return res
+        return {}
 
 
 @worlds_api.route("/structure/<string:auth_token>/<string:token>")
