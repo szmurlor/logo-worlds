@@ -12,6 +12,11 @@ html,body {
     height: 100%;
 }
 
+.login-error {
+    color: white;
+    font-weight: bold;
+}
+
 div.login-container {
     background-image: url('./img/background.jpg');
     background-size: cover;
@@ -27,7 +32,7 @@ div.login-container {
 }
 
 .card{
-    height: 330px;
+    min-height: 330px;
     margin-top: auto;
     margin-bottom: auto;
     width: 400px;
