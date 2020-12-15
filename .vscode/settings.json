@@ -3,5 +3,5 @@
     "./service"
     ],
     "python.linting.enabled": false,
-    "python.pythonPath": "/opt/anaconda3/envs/flask/bin/python"
+    "python.pythonPath": "/home/szmurlor/miniconda3/envs/flask/bin/python"
 }

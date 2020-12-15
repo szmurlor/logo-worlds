@@ -13,7 +13,7 @@ export function getInfo(worldToken, callback) {
                 callback(null, "Błąd podczas połączenia z API: " + json.status + " [" + json.error + "]");
             })
             .catch((e) => {
-                callback(null, e);
+                callback(null, `Nie mogę połączyć się z usługą sieciową pod adresem: ${LOGO_WORLDS_URL}`)
             });
     } else {
         callback(null, "Wprowadź token świata.");
