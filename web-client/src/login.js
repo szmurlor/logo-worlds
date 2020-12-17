@@ -89,7 +89,7 @@ export function Login() {
                                 To jest gra na przedmiot Podstawy Programowania 2020Z
                             </div>
                     <div className="d-flex justify-content-center">
-                        <a target="_blank" href="https://github.com/szmurlor/logo-worlds/wiki/Instrukcja---Podstawy-Programowania---J%C4%99zyk-c">Więcej informacji</a>
+                        <a target="_blank" href="https://github.com/szmurlor/logo-worlds/wiki/Instrukcja---Podstawy-Programowania---J%C4%99zyk-c">Więcej informacji</a><br/>
                     </div>
                 </div>
             </div>
