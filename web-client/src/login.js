@@ -84,7 +84,7 @@ export function Login() {
                     </form>
                 </div>
                 <div className="card-footer">
-                    <div className="d-flex justify-content-center links">
+                    <div className="d-flex justify-content-center text-center links">
                         Wpisz token swojego świata.<br />
                                 To jest gra na przedmiot Podstawy Programowania 2020Z
                             </div>
