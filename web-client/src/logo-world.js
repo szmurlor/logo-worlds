@@ -4,6 +4,7 @@ import { LOGO_WORLDS_URL, TW, BW, BC } from "./config"
 import { Button } from "react-bootstrap"
 import { Arrow90degLeft, Arrow90degRight, XSquare } from 'react-bootstrap-icons';
 import { getInfo, apiCommand, apiCommand2 } from "./apiclient"
+import {useMediaQuery} from "react-responsive"
 import appState from "./appstate";
 
 var tilesImg = new Image();
@@ -44,23 +45,12 @@ function WorldHeader(props) {
     appState.updateApp();
   }
 
-  const handleResetWorld = (e) => {
-    e.preventDefault();
-    apiCommand(appState.state.token, "reset", (json, err) => {
-      if (json != null) {
-        props.setWorldInfo(json.payload)
-      } else 
-        console.log(err)
-    })
-    appState.updateApp();
-  }
-
   return <dl className="row left">
     <dt className="col-sm-3">Token świata</dt>
     <dd className="col-sm-9">
       <b>{appState.state.token}</b>
       <a className="badge badge-success ml-3" href="#" onClick={handleChangeToken}>Zmień</a>
-      <a className="badge badge-success ml-3" href="#" onClick={handleResetWorld}>Resetuj</a>
+      <a className="badge badge-success ml-3" href="#" onClick={props.handleResetWorld}>Resetuj</a>
     </dd>
     <dt className="col-sm-3">Informacje:</dt>
     <dd className="col-sm-9">
@@ -116,9 +106,10 @@ function get_initial_board() {
   return a;
 }
 
-function Board(props) {
-
-  const [board, setBoard] = useState(get_initial_board);
+function Board({board, setBoard, ...props}) {
+  
+  const isMobile = useMediaQuery({ maxWidth: 767 })
+  var scale = isMobile ? 0.5 : 1.0;
 
   useEffect(() => {
     if (props.worldInfo != null) {
@@ -136,7 +127,7 @@ function Board(props) {
       [tx, ty] = [0, 0]
     else if (what === "SAND")
       [tx, ty] = [2, 0]
-    ctx.drawImage(tilesImg, tx * TW, ty * TW, TW, TW, x * TW, y * TW, TW, TW);
+    ctx.drawImage(tilesImg, tx * TW, ty * TW, TW, TW, x * TW*scale, y * TW*scale, TW*scale, TW*scale);
   }
 
   const drawTank = (ctx, x, y, d) => {
@@ -149,7 +140,7 @@ function Board(props) {
       tx = 1
     else if (d === "W")
       tx = 2
-    ctx.drawImage(chImg, tx * TW, 0, TW, TW, (BC + x) * TW, (BW - BC - y) * TW, TW, TW);
+    ctx.drawImage(chImg, tx * TW, 0, TW, TW, (BC + x) * TW*scale, (BW - BC - y) * TW*scale, TW*scale, TW*scale);
   }
 
   const x = props.worldInfo.current_x;
@@ -238,13 +229,13 @@ function Board(props) {
     <Row>
       <div className="btn-group" role="group" >
         <Button className="btn btn-primary" onClick={(e) => onRotateClick(e, "left")}><Arrow90degLeft /> W lewo</Button>
-        <Button className="btn btn-secondary" onClick={(e) => onMoveClick(e)}>Do przodu</Button>
         <Button className="btn btn-primary" onClick={(e) => onRotateClick(e, "right")}><Arrow90degRight /> W prawo</Button>
+        <Button className="btn btn-secondary" onClick={(e) => onMoveClick(e)}>Do przodu</Button>
         <Button className="btn btn-info" onClick={(e) => onExploreClick(e)}>Exploruj z przodu</Button>
       </div>
     </Row>,
     <Row>
-      <canvas id="cboard" width={BW * TW} height={BW * TW}></canvas>
+      <canvas id="cboard" width={BW * TW * scale} height={BW * TW * scale}></canvas>
     </Row>
   ];
 }
@@ -309,6 +300,7 @@ export function LogoWorld(props) {
   const [worldInfo, setWorldInfo] = useState(null)
   const [refresh, setRefresh] = useState(1)
   const [showHistory, setShowHistory] = useState(false)
+  const [board, setBoard] = useState(get_initial_board);
 
   useEffect(() => {
     getInfo(appState.state.token, (json, err) => {
@@ -325,13 +317,28 @@ export function LogoWorld(props) {
     setShowHistory(show);
   }
 
+  const handleResetWorld = (e) => {
+    e.preventDefault();
+    apiCommand(appState.state.token, "reset", (json, err) => {
+      if (json != null) {
+        setWorldInfo(json.payload)
+        if (json.status === "Success")
+          setBoard(get_initial_board())
+      } else 
+        console.log(err)
+    })
+    appState.updateApp();
+  }
+
   return (
     <Container>
       <Row>
         <InfoHelp />
       </Row>
       <Row>
-        <WorldHeader worldInfo={worldInfo} showHistory={showHistory} cmdShowHistory={cmdShowHistory} setWorldInfo={setWorldInfo} />
+        <WorldHeader worldInfo={worldInfo} showHistory={showHistory} 
+        cmdShowHistory={cmdShowHistory} setWorldInfo={setWorldInfo}
+        handleResetWorld={handleResetWorld} />
       </Row>
 
       { showHistory ?
@@ -339,9 +346,10 @@ export function LogoWorld(props) {
         <WorldHistory worldInfo={worldInfo} cmdShowHistory={cmdShowHistory} />
       </Row>      
       :
-      <Row>
-        {worldInfo && <Board worldInfo={worldInfo} setWorldInfo={setWorldInfo} doRefresh={() => { setRefresh(refresh + 1) }} />}
-      </Row>
+      worldInfo && <Board worldInfo={worldInfo} 
+      board={board} setBoard={setBoard}
+      setWorldInfo={setWorldInfo} 
+      doRefresh={() => { setRefresh(refresh + 1) }} />
       }
 
     </Container>
