@@ -109,8 +109,7 @@ def register_step(w, command, args=None):
 
     #############
     db_save(wc)
-    #############
-
     w.step = s
     db_save(w)
+    #############
             

@@ -16,18 +16,18 @@ function TokenField(props) {
         var t = e.target.value
         props.setToken(t)
 
-        getInfo(t, (json, err) => {
-            if (json != null) {
-                console.log("Otrzymałem z API: ", json.payload);
+        // getInfo(t, (json, err) => {
+        //     if (json != null) {
+        //         console.log("Otrzymałem z API: ", json.payload);
 
-                props.setError(null);
-                appState.state.token = t;
-                appState.updateApp();
+        //         props.setError(null);
+        //         appState.state.token = t;
+        //         appState.updateApp();
 
-            } else {
-                props.setError(err);
-            }
-        })
+        //     } else {
+        //         props.setError(err);
+        //     }
+        // })
     }
 
 
@@ -90,6 +90,9 @@ export function Login() {
                             </div>
                     <div className="d-flex justify-content-center">
                         <a target="_blank" href="https://github.com/szmurlor/logo-worlds/wiki/Instrukcja---Podstawy-Programowania---J%C4%99zyk-c">Więcej informacji</a><br/>
+                    </div>
+                    <div className="d-flex justify-content-end">
+                        <span><a target="_blank" href="https://github.com/szmurlor/logo-worlds/wiki/Historia-zmian">v1.1</a></span>
                     </div>
                 </div>
             </div>

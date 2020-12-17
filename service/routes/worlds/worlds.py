@@ -81,6 +81,9 @@ class MoveClass(Resource):
                 ###########
                 db_save(w)
                 ###########
+            else:                
+                register_step(w, f'forward failt')
+
     
         return make_info(w)
 

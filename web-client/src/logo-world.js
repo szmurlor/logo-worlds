@@ -45,23 +45,12 @@ function WorldHeader(props) {
     appState.updateApp();
   }
 
-  const handleResetWorld = (e) => {
-    e.preventDefault();
-    apiCommand(appState.state.token, "reset", (json, err) => {
-      if (json != null) {
-        props.setWorldInfo(json.payload)
-      } else 
-        console.log(err)
-    })
-    appState.updateApp();
-  }
-
   return <dl className="row left">
     <dt className="col-sm-3">Token świata</dt>
     <dd className="col-sm-9">
       <b>{appState.state.token}</b>
       <a className="badge badge-success ml-3" href="#" onClick={handleChangeToken}>Zmień</a>
-      <a className="badge badge-success ml-3" href="#" onClick={handleResetWorld}>Resetuj</a>
+      <a className="badge badge-success ml-3" href="#" onClick={props.handleResetWorld}>Resetuj</a>
     </dd>
     <dt className="col-sm-3">Informacje:</dt>
     <dd className="col-sm-9">
@@ -117,9 +106,8 @@ function get_initial_board() {
   return a;
 }
 
-function Board(props) {
-  const [board, setBoard] = useState(get_initial_board);
-
+function Board({board, setBoard, ...props}) {
+  
   const isMobile = useMediaQuery({ maxWidth: 767 })
   var scale = isMobile ? 0.5 : 1.0;
 
@@ -312,6 +300,7 @@ export function LogoWorld(props) {
   const [worldInfo, setWorldInfo] = useState(null)
   const [refresh, setRefresh] = useState(1)
   const [showHistory, setShowHistory] = useState(false)
+  const [board, setBoard] = useState(get_initial_board);
 
   useEffect(() => {
     getInfo(appState.state.token, (json, err) => {
@@ -328,13 +317,28 @@ export function LogoWorld(props) {
     setShowHistory(show);
   }
 
+  const handleResetWorld = (e) => {
+    e.preventDefault();
+    apiCommand(appState.state.token, "reset", (json, err) => {
+      if (json != null) {
+        setWorldInfo(json.payload)
+        if (json.status === "Success")
+          setBoard(get_initial_board())
+      } else 
+        console.log(err)
+    })
+    appState.updateApp();
+  }
+
   return (
     <Container>
       <Row>
         <InfoHelp />
       </Row>
       <Row>
-        <WorldHeader worldInfo={worldInfo} showHistory={showHistory} cmdShowHistory={cmdShowHistory} setWorldInfo={setWorldInfo} />
+        <WorldHeader worldInfo={worldInfo} showHistory={showHistory} 
+        cmdShowHistory={cmdShowHistory} setWorldInfo={setWorldInfo}
+        handleResetWorld={handleResetWorld} />
       </Row>
 
       { showHistory ?
@@ -342,7 +346,10 @@ export function LogoWorld(props) {
         <WorldHistory worldInfo={worldInfo} cmdShowHistory={cmdShowHistory} />
       </Row>      
       :
-      worldInfo && <Board worldInfo={worldInfo} setWorldInfo={setWorldInfo} doRefresh={() => { setRefresh(refresh + 1) }} />
+      worldInfo && <Board worldInfo={worldInfo} 
+      board={board} setBoard={setBoard}
+      setWorldInfo={setWorldInfo} 
+      doRefresh={() => { setRefresh(refresh + 1) }} />
       }
 
     </Container>
