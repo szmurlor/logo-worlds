@@ -216,7 +216,7 @@ function Board({board, setBoard, ...props}) {
       e.preventDefault();
       onExploreClick(e);
     }
-  }, [])
+  })
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeydown);
