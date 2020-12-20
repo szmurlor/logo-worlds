@@ -92,7 +92,7 @@ export function Login() {
                         <a target="_blank" href="https://github.com/szmurlor/logo-worlds/wiki/Instrukcja---Podstawy-Programowania---J%C4%99zyk-c">Więcej informacji</a><br/>
                     </div>
                     <div className="d-flex justify-content-end">
-                        <span><a target="_blank" href="https://github.com/szmurlor/logo-worlds/wiki/Historia-zmian">v1.1</a></span>
+                        <span><a target="_blank" href="https://github.com/szmurlor/logo-worlds/wiki/Historia-zmian">v1.2</a></span>
                     </div>
                 </div>
             </div>
