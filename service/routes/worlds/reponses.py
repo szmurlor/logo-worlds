@@ -69,7 +69,7 @@ world_info_response = api.model(
 explore = api.model(
     "Explore",
     {
-        "fields": fields.List(fields.Nested(field_info)
+        "list": fields.List(fields.Nested(field_info)
         )
     }
 )
@@ -85,7 +85,7 @@ explore_response = api.model(
 
 
 move = api.model(
-    "Explore",
+    "Move",
     {
         "name": fields.String,
         "current_x": fields.Integer,

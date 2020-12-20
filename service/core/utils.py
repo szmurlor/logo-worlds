@@ -5,9 +5,10 @@ from flask import request
 from datetime import datetime
 
 def forward(w,left=False,right=False):
+    
     x = w.pos_x
     y = w.pos_y
-    print(f"x={x}, y={y}, d={w.direction[0]}")
+
     if w.direction[0] == "N":
         return x+(1 if left else -1 if right else 0),y+1
     elif w.direction[0] == "S":

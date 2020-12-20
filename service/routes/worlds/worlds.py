@@ -99,18 +99,18 @@ class ExploreClass(Resource):
 
         if (w is not None):
             register_step(w, 'explore')
-            res["fields"] = []
+            res["list"] = []
             for x,y in look_at(w):
                 loc = WorldField.query.filter_by(x=x, y=y,world_id=w.id).one()
                 
                 if loc is not None:
-                    res["fields"].append( {"x": x, 
+                    res["list"].append( {"x": x, 
                                     "y": y, 
                                     "type": loc.type
                                     } 
                                 )
                 else:
-                    res["fields"].append( {"x": x, "y": y, type: "not found"} )
+                    res["list"].append( {"x": x, "y": y, type: "not found"} )
                 
         else:
             raise Exception( f"Unable to find world with token: '{token}'" )
@@ -196,7 +196,7 @@ class CreateWorldClass(Resource):
     @worlds_answer
     def post(self, auth_token):
         if (auth_token == config['security']['admin_pass']):
-            print(f"Payload: {worlds_api.payload}")
+            # print(f"Payload: {worlds_api.payload}")
             w = World()
             w.direction = "NESW"
             w.name = worlds_api.payload['name']

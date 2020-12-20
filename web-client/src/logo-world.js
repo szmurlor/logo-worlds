@@ -192,7 +192,7 @@ function Board({board, setBoard, ...props}) {
     e.preventDefault();
     apiCommand(appState.state.token, 'explore', (json, err) => {
       if (json != null) {
-        json.payload.fields.forEach(({ x, y, type }) => {
+        json.payload.list.forEach(({ x, y, type }) => {
           board[BW - BC - y][BC + x] = type.toUpperCase();
           setBoard({ ...board })
         });
