@@ -1,8 +1,8 @@
 import React, { useEffect, useState, useRef } from "react"
 
-import appState from "./appstate"
+import appState from "../models/appstate"
 import "./login.css"
-import {getInfo} from "./apiclient"
+import {getInfo} from "../models/apiclient"
 
 function TokenField(props) {
 
@@ -15,19 +15,6 @@ function TokenField(props) {
         e.preventDefault();
         var t = e.target.value
         props.setToken(t)
-
-        // getInfo(t, (json, err) => {
-        //     if (json != null) {
-        //         console.log("Otrzymałem z API: ", json.payload);
-
-        //         props.setError(null);
-        //         appState.state.token = t;
-        //         appState.updateApp();
-
-        //     } else {
-        //         props.setError(err);
-        //     }
-        // })
     }
 
 
@@ -66,13 +53,6 @@ export function Login() {
             <div className="card">
                 <div className="card-header">
                     <h3>Witaj w Logo-Worlds</h3>
-                    {
-                        /*<div class="d-flex justify-content-end social_icon">
-                            <span><i class="fab fa-facebook-square"></i></span>
-                            <span><i class="fab fa-google-plus-square"></i></span>
-                            <span><i class="fab fa-twitter-square"></i></span>
-                        </div>*/
-                    }
                     { error != null && <p className="login-error">{error}</p>}
                 </div>
                 <div className="card-body">

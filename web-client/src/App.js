@@ -2,10 +2,10 @@ import React, {useState} from "react";
 import { BrowserRouter as Router, Route } from "react-router-dom";
 import "./styles.css";
 
-import { LogoWorld } from "./logo-world";
-import { Login } from "./login";
+import { LogoWorld } from "./components/logo-world";
+import { Login } from "./components/login";
 
-import appState from "./appstate"
+import appState from "./models/appstate"
 
 export default function App() {
   var [v,setV] = useState(0);

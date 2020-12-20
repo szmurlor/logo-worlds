@@ -1,4 +1,4 @@
-import {LOGO_WORLDS_URL, TW, BW, BC} from "./config"
+import {LOGO_WORLDS_URL, TW, BW, BC} from "../config"
 
 export function getInfo(worldToken, callback) {
     if (worldToken != null && worldToken.length > 0) {
