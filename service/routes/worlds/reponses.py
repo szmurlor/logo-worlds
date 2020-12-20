@@ -146,6 +146,24 @@ history_response = api.model(
     }
 )
 
+world_sessions = api.model(
+    "WorldSessions", 
+    {
+        "sessions": fields.List(fields.String),
+        "world_info": fields.Nested(world_info)
+    }
+)
+
+world_sessions_response = api.model(
+    "WorldSessionsResponse", 
+    {
+        "status": fields.String, 
+        "error": fields.String, 
+        "payload": fields.Nested(world_sessions)
+    }
+)
+
+
 
 world = api.model(
     "World",

@@ -14,6 +14,7 @@ from misc.service_logger import serviceLogger as logger
 from namespace import worlds_api
 from misc.db_misc_functions import db_save
 from instance.config import config
+from instance.flask_app import db
 
 from routes.worlds.reponses import *
 
@@ -58,6 +59,27 @@ class WorldClass(Resource):
             raise Exception( f"Unable to find world with token: '{token}'" )
 
         return make_info(w)
+
+
+@worlds_api.route("/sessions/<string:token>")
+class WorldClass(Resource):
+    @api.marshal_with(world_sessions_response, skip_none=True)
+    @worlds_answer
+    def get(self, token):
+        sessions = []
+
+        w = World.query.filter_by(token=token).one()
+        print(db.session.query(WorldCommand.session.distinct()).filter_by(world_id=w.id))
+        if (w is not None):
+            for s in db.session.query(WorldCommand.session.distinct()).all():
+                sessions.append(s[0])
+
+            print(sessions)
+
+        res = { "sessions": sessions, "world_info": make_info(w) }
+
+        print(res)
+        return res
 
 
 @worlds_api.route("/move/<string:token>")
